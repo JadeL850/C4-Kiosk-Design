@@ -91,16 +91,6 @@ body { font-family: "Hanken Grotesk", system-ui, sans-serif; color: var(--paper)
 /* fading fingerprint layer */
 #glass { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 
-/* demo: whose prints are being recorded right now */
-.visitor {
-  position: fixed; right: 24px; bottom: 18px; z-index: 2;
-  display: flex; align-items: center; gap: 8px;
-  font: 500 12px/1 "Hanken Grotesk", sans-serif; letter-spacing: .08em;
-  color: var(--mist); pointer-events: none;
-}
-.visitor i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, #4cc9ff); box-shadow: 0 0 10px var(--c, #4cc9ff); transition: background .6s, box-shadow .6s; }
-.visitor b { font-weight: 500; color: var(--c, #4cc9ff); transition: color .6s; }
-
 /* progress line */
 .progress { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.06); pointer-events: none; }
 .progress span { display: block; height: 100%; width: 0; background: var(--mist); }

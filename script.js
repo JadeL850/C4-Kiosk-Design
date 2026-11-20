@@ -74,7 +74,6 @@ const SWITCH_MS = 15000;                 // how often the visitor (colour) chang
 const LIFE = 9000;                       // ms a print stays visible
 const glass = document.getElementById('glass');
 const g = glass.getContext('2d');
-const chip = document.getElementById('visitor');
 const marks = [];
 
 function sizeGlass() {
@@ -84,14 +83,9 @@ function sizeGlass() {
 }
 sizeGlass(); window.addEventListener('resize', sizeGlass);
 
-/* current visitor */
-let visitor = 0, visitorNo = 417;
-function setVisitor() {
-  chip.style.setProperty('--c', COLOURS[visitor]);
-  chip.querySelector('b').textContent = String(visitorNo).padStart(4, '0');
-}
-setVisitor();
-setInterval(() => { visitor = (visitor + 1) % COLOURS.length; visitorNo++; setVisitor(); }, SWITCH_MS);
+/* current visitor (sets the colour of new prints) */
+let visitor = 0;
+setInterval(() => { visitor = (visitor + 1) % COLOURS.length; }, SWITCH_MS);
 
 /* --- procedural fingerprint textures (built once, then tinted per colour) --- */
 const TW = 150, TH = 190, VARIANTS = 8;
