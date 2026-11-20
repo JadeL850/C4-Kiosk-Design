@@ -88,8 +88,75 @@ body { font-family: "Hanken Grotesk", system-ui, sans-serif; color: var(--paper)
 .card-hl { left: 53px; top: 785px; font-size: 60px; line-height: 55px; }
 .card-cue { left: 53px; top: 1002px; color: var(--mist); }
 
-/* fading fingerprint layer */
-#glass { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+/* fading fingerprint layer — above everything, so prints also land on the info panel */
+#glass { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+/* ---------- tappable elements ---------- */
+.tap { cursor: pointer; }
+.tap:focus-visible { outline: 2px solid var(--paper); outline-offset: 6px; }
+/* a small "+" on the Measurable Data photos so people know they open */
+figure.tap::after {
+  content: "+";
+  position: absolute; right: 14px; bottom: 14px;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  font: 300 30px/1 "Hanken Grotesk", sans-serif; color: var(--paper);
+  background: rgba(8,8,10,.55); border: 1px solid rgba(242,239,232,.55);
+}
+
+/* ---------- info panel (sized in vh so it matches the height-scaled layout) ---------- */
+.sheet {
+  position: fixed; inset: 0; z-index: 10;
+  visibility: hidden; opacity: 0;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+}
+.sheet.open { visibility: visible; opacity: 1; transition: opacity .3s ease; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(8,8,10,.62); }
+.sheet-panel {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: min(100vw, 64vh);
+  padding: 9vh 6vh 6vh;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--ground);
+  border-left: 1px solid rgba(242,239,232,.14);
+  transform: translateX(6vh);
+  transition: transform .35s cubic-bezier(.2,.7,.2,1);
+}
+.sheet.open .sheet-panel { transform: none; }
+.sheet-close {
+  position: absolute; top: 2.6vh; right: 3vh;
+  min-height: 48px; padding: 0 1.4vh;
+  background: none; border: 1px solid rgba(242,239,232,.3); border-radius: 999px;
+  font: 500 max(13px, 1.4vh)/1 "Hanken Grotesk", sans-serif;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--mist); cursor: pointer;
+}
+.sheet-close span { margin-left: .6em; }
+.info-kicker {
+  font-size: max(12px, 1.35vh); font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--grey);
+}
+.info-title {
+  margin-top: 1.4vh;
+  font: 700 7vh/.92 "Barlow Condensed", "Arial Narrow", sans-serif;
+  text-transform: uppercase; color: var(--paper);
+}
+.info-lede {
+  margin-top: 2.4vh;
+  font-size: max(17px, 2.3vh); font-weight: 300; line-height: 1.35; color: var(--paper);
+}
+.info-facts { list-style: none; margin-top: 3.6vh; }
+.info-facts li {
+  padding: 2vh 0;
+  border-top: 1px solid rgba(242,239,232,.14);
+  font-size: max(15px, 1.8vh); font-weight: 300; line-height: 1.5; color: var(--mist);
+}
+.info-facts b { font-weight: 500; color: var(--paper); }
+.info-source {
+  margin-top: 1.6vh; padding-top: 2vh;
+  border-top: 1px solid rgba(242,239,232,.14);
+  font-size: max(12px, 1.3vh); line-height: 1.5; color: var(--grey);
+}
 
 /* progress line */
 .progress { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.06); pointer-events: none; }

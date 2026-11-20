@@ -25,6 +25,9 @@ vp.addEventListener('wheel', (e) => {
 
 /* ---------- keyboard ---------- */
 window.addEventListener('keydown', (e) => {
+  if (sheetOpen()) { if (e.key === 'Escape') closeInfo(); return; }
+  const tap = e.target.closest && e.target.closest('[data-info]');
+  if (tap && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openInfo(tap.dataset.info, tap, true); return; }
   const step = window.innerWidth * 0.6;
   if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { vp.scrollBy({ left: step, behavior: 'smooth' }); e.preventDefault(); }
   if (['ArrowLeft', 'PageUp'].includes(e.key)) { vp.scrollBy({ left: -step, behavior: 'smooth' }); e.preventDefault(); }
@@ -66,12 +69,55 @@ function progress() {
 }
 vp.addEventListener('scroll', progress, { passive: true });
 
-/* ---------- latent prints: every touch leaves a real-looking thumbprint smudge that fades ----------
-   Demo: the "visitor" changes every 15 s, and each visitor's prints come out in their own colour.
-   Old prints keep the colour of whoever left them, so several visitors' traces overlap on the glass. */
+/* ---------- info panel: tapping an element with data-info="name" opens <section id="info-name"> ---------- */
+const sheet = document.getElementById('sheet');
+const panel = sheet.querySelector('.sheet-panel');
+const closeBtn = sheet.querySelector('.sheet-close');
+let opener = null;
+
+function sheetOpen() { return sheet.classList.contains('open'); }
+function openInfo(name, from, viaKeyboard) {
+  const sec = document.getElementById('info-' + name);
+  if (!sec) return;
+  sheet.querySelectorAll('.info').forEach((s) => { s.hidden = s !== sec; });
+  panel.setAttribute('aria-label', sec.querySelector('.info-title').textContent);
+  panel.scrollTop = 0;
+  opener = from || null;
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  if (viaKeyboard) closeBtn.focus({ preventScroll: true });
+}
+function closeInfo() {
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  if (opener && document.activeElement && sheet.contains(document.activeElement)) opener.focus({ preventScroll: true });
+  opener = null;
+}
+sheet.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeInfo(); });
+
+// a tap opens the panel; a drag/swipe to scroll does not
+let tapX = 0, tapY = 0, tapMoved = false;
+vp.addEventListener('pointerdown', (e) => { tapX = e.clientX; tapY = e.clientY; tapMoved = false; });
+vp.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - tapX, e.clientY - tapY) > 10) tapMoved = true; });
+vp.addEventListener('click', (e) => {
+  if (tapMoved) return;
+  const t = e.target.closest('[data-info]');
+  if (t) openInfo(t.dataset.info, t, false);
+});
+
+/* ---------- latent prints on the glass ----------
+   Every touch leaves a thumbprint that fades. The prints are made from real
+   fingerprint photos (img/prints/, built from img/fingerprint reference *.jpg).
+   - The current visitor's taps and swipes come out in one colour, picked at
+     random and changed every 15 s.
+   - Every 10 s, fainter prints and swipe marks left by earlier "visitors"
+     surface in other colours, so several people's traces overlap. */
 const COLOURS = ['#4cc9ff', '#ff3df2', '#ffe14d', '#ff3b4e'];
-const SWITCH_MS = 15000;                 // how often the visitor (colour) changes
+const SWITCH_MS = 15000;                 // how often the current visitor (colour) changes
+const GHOST_MS = 10000;                  // how often earlier visitors' traces appear
 const LIFE = 9000;                       // ms a print stays visible
+const PRINT_H = 0.115;                   // print height, as a share of the screen height
+const PRINT_SRC = ['img/prints/print-1.png', 'img/prints/print-2.png', 'img/prints/print-3.png'];
 const glass = document.getElementById('glass');
 const g = glass.getContext('2d');
 const marks = [];
@@ -80,114 +126,180 @@ function sizeGlass() {
   const d = window.devicePixelRatio || 1;
   glass.width = innerWidth * d; glass.height = innerHeight * d;
   g.setTransform(d, 0, 0, d, 0, 0);
+  g.imageSmoothingQuality = 'high';
 }
 sizeGlass(); window.addEventListener('resize', sizeGlass);
 
-/* current visitor (sets the colour of new prints) */
-let visitor = 0;
-setInterval(() => { visitor = (visitor + 1) % COLOURS.length; }, SWITCH_MS);
+/* colours: a random one for the current visitor, different ones for earlier visitors */
+function pickColour(avoid) {
+  const free = COLOURS.map((_, i) => i).filter((i) => !avoid.includes(i));
+  const from = free.length ? free : COLOURS.map((_, i) => i);
+  return from[Math.floor(Math.random() * from.length)];
+}
+let visitor = pickColour([]);
+setInterval(() => { visitor = pickColour([visitor]); }, SWITCH_MS);
 
-/* --- procedural fingerprint textures (built once, then tinted per colour) --- */
-const TW = 150, TH = 190, VARIANTS = 8;
-function rand(seed) { let s = seed * 9301 + 49297; return () => ((s = (s * 9301 + 49297) % 233280) / 233280); }
-function makePrint(seed) {
-  const r = rand(seed + 1);
-  const c = document.createElement('canvas'); c.width = TW; c.height = TH;
-  const x = c.getContext('2d'), img = x.createImageData(TW, TH), d = img.data;
-  const kind = ['whorl', 'loop', 'loop', 'arch'][Math.floor(r() * 4)];
-  const cx = TW / 2 + (r() - .5) * 14, cy = TH * (0.42 + (r() - .5) * .12);
-  const period = 4.2 + r() * 1.3;                     // ridge spacing in px
-  const ph = Array.from({ length: 8 }, () => r() * 6.283);
-  const side = r() < .5 ? -1 : 1, spiral = r() < .4 ? 0 : (r() < .5 ? -1 : 1);   // whole turns only, so no seam
-  const warp = (u, v, k) => Math.sin(u * 0.045 + ph[k]) * Math.cos(v * 0.038 + ph[k + 1]);
-  for (let py = 0; py < TH; py++) for (let px = 0; px < TW; px++) {
-    // fingertip shape: soft oval with an irregular edge
-    const ex = (px - TW / 2) / (TW / 2), ey = (py - TH / 2) / (TH / 2);
-    let e = Math.sqrt(ex * ex + ey * ey) + 0.07 * warp(px * 3, py * 3, 4);
-    if (e > 1) continue;
-    // domain warp so ridges wander like real skin
-    const u = px - cx + 5 * warp(px, py, 0), v = py - cy + 5 * warp(py, px, 2);
-    let phi;
-    if (kind === 'whorl') {
-      phi = Math.hypot(u * 1.12, v) / period + spiral * Math.atan2(v, u) / 6.283;
-    } else if (kind === 'loop') {
-      const ut = u + side * 0.35 * Math.max(v, 0);
-      const top = Math.hypot(ut, Math.min(v, 0)) / period;
-      const arch = (-(v - TH * .3) + 22 * Math.exp(-(u * u) / 900)) / period;
-      const w = 1 / (1 + Math.exp(-(v - TH * .18) / 6));
-      phi = top * (1 - w) + arch * w;
-    } else {
-      phi = (-v + 18 * Math.exp(-(u * u) / 1400)) / period;
+/* --- fingerprint textures: each photo, plus a mirrored copy --- */
+const BASES = [];
+PRINT_SRC.forEach((src) => {
+  const im = new Image();
+  im.onload = () => {
+    for (const flip of [1, -1]) {
+      const c = document.createElement('canvas');
+      c.width = im.naturalWidth; c.height = im.naturalHeight;
+      const x = c.getContext('2d');
+      if (flip < 0) { x.translate(c.width, 0); x.scale(-1, 1); }
+      x.drawImage(im, 0, 0);
+      BASES.push(c);
     }
-    let ridge = 0.5 + 0.5 * Math.cos(phi * 6.283);
-    ridge = Math.max(0, Math.min(1, (ridge - 0.38) * 3));
-    // breaks / pores
-    if (Math.sin(px * 1.9 + ph[5]) * Math.sin(py * 2.3 + ph[6]) > 0.86) ridge *= 0.2;
-    // pressure: heavier in the middle, patchy, fades to the edge
-    const pres = Math.max(0, Math.min(1, (1 - e) * 3.2)) * (0.65 + 0.35 * warp(px * 1.6, py * 1.6, 3));
-    const over = Math.max(0, 0.35 - e * 0.5) * (0.5 + 0.5 * warp(px * 2.2, py * 2.2, 6));
-    const a = Math.min(1, ridge * pres + over) * (0.78 + 0.22 * r());   // grain
-    d[(py * TW + px) * 4 + 3] = a * 255;
-  }
-  x.putImageData(img, 0, 0);
-  return c;
-}
-const PRINTS = Array.from({ length: VARIANTS }, (_, i) => makePrint(i * 7 + 3));
-// tinted copies, with the softness baked in once (per-frame canvas blur is too slow on a kiosk):
-// PRINT_TINTS[colour][variant] = { press, smear }
-function tint(src, col, blur) {
-  const c = document.createElement('canvas'); c.width = TW; c.height = TH;
-  const x = c.getContext('2d');
-  x.filter = `blur(${blur}px)`;
-  x.drawImage(src, 0, 0);
-  x.filter = 'none';
-  x.globalCompositeOperation = 'source-in';
-  x.fillStyle = col; x.fillRect(0, 0, TW, TH);
-  return c;
-}
-const PRINT_TINTS = COLOURS.map((col) => PRINTS.map((p) => ({ press: tint(p, col, 0.5), smear: tint(p, col, 2.2) })));
+  };
+  im.src = src;
+});
 
-/* --- record touches --- */
-let lastMark = 0, lastPos = null;
+// Tinted versions are built on first use and cached (blurring per frame is too slow on a kiosk).
+//   press — a fingertip pressed on the glass, with uneven pressure (p picks where it pressed hardest)
+//   smear — the same fingertip dragged, its ridges streaked into lines
+const PRESSURE = [[0, 0.05], [-0.22, 0.18], [0.2, -0.12]];
+const texCache = new Map();
+function texture(b, col, kind, p) {
+  const key = `${b}|${col}|${kind}|${p}`;
+  let c = texCache.get(key);
+  if (c) return c;
+  const src = BASES[b], w = src.width, h = src.height;
+  c = document.createElement('canvas');
+  const x = c.getContext('2d');
+  if (kind === 'press') {
+    c.width = w; c.height = h;
+    x.filter = 'blur(0.35px)';
+    x.drawImage(src, 0, 0);
+    x.filter = 'none';
+    // pressure: full where the finger pressed hardest, fading towards the far edge
+    const [ox, oy] = PRESSURE[p];
+    const gr = x.createRadialGradient(w * (0.5 + ox), h * (0.5 + oy), 0, w * (0.5 + ox), h * (0.5 + oy), Math.max(w, h) * 0.78);
+    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.55, 'rgba(0,0,0,.85)'); gr.addColorStop(1, 'rgba(0,0,0,.12)');
+    x.globalCompositeOperation = 'destination-in';
+    x.fillStyle = gr; x.fillRect(0, 0, w, h);
+  } else {
+    // a slice across the middle of the print, stretched along the swipe: each ridge the
+    // finger drags leaves a thin oily streak, so a swipe reads as fine parallel lines
+    c.width = w; c.height = h;
+    x.filter = 'blur(0.5px)';
+    x.drawImage(src, 0, Math.floor(h * 0.45), w, 3, 0, 0, w, h);
+    x.globalAlpha = 0.5;
+    x.drawImage(src, 0, Math.floor(h * 0.62), w, 3, 0, 0, w, h);
+    x.filter = 'none'; x.globalAlpha = 1;
+    // fade out at both ends and towards the sides of the fingertip
+    x.globalCompositeOperation = 'destination-in';
+    const along = x.createLinearGradient(0, 0, 0, h);
+    along.addColorStop(0, 'rgba(0,0,0,0)'); along.addColorStop(0.3, 'rgba(0,0,0,1)');
+    along.addColorStop(0.7, 'rgba(0,0,0,1)'); along.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = along; x.fillRect(0, 0, w, h);
+    const across = x.createLinearGradient(0, 0, w, 0);
+    across.addColorStop(0, 'rgba(0,0,0,0)'); across.addColorStop(0.25, 'rgba(0,0,0,1)');
+    across.addColorStop(0.75, 'rgba(0,0,0,1)'); across.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = across; x.fillRect(0, 0, w, h);
+  }
+  x.globalCompositeOperation = 'source-in';
+  x.fillStyle = COLOURS[col]; x.fillRect(0, 0, c.width, c.height);
+  // faint oily haze around the ridges, like skin oil on glass
+  x.globalCompositeOperation = 'destination-over';
+  const hz = x.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, Math.max(c.width, c.height) / 2);
+  hz.addColorStop(0, COLOURS[col] + '1f'); hz.addColorStop(1, COLOURS[col] + '00');
+  x.fillStyle = hz; x.fillRect(0, 0, c.width, c.height);
+  texCache.set(key, c);
+  return c;
+}
+
+/* --- marks --- */
+function makeMark(x, y, kind, col, t, strength, b, ang = 0) {
+  return {
+    x, y, kind, col, t, strength, ang, b,
+    p: Math.floor(Math.random() * PRESSURE.length),
+    rot: (Math.random() - 0.5) * 0.9,
+    s: kind === 'press' ? 0.88 + Math.random() * 0.24 : 0.8 + Math.random() * 0.1,
+  };
+}
+function pushMark(m) { marks.push(m); if (marks.length > 900) marks.shift(); }
+const randomBase = () => Math.floor(Math.random() * BASES.length);
+
+// the current visitor's touches (one finger = one print pattern for the whole stroke)
+let lastMark = 0, lastPos = null, strokeBase = 0;
 function addMark(x, y, kind) {
+  if (!BASES.length) return;
   const now = performance.now();
-  if (kind === 'trail' && now - lastMark < 28) return;
+  if (kind === 'press') { strokeBase = randomBase(); lastPos = null; }
+  if (kind === 'trail') {
+    if (now - lastMark < 24) return;
+    if (lastPos && Math.hypot(x - lastPos.x, y - lastPos.y) < 4) return;
+  }
   const ang = lastPos ? Math.atan2(y - lastPos.y, x - lastPos.x) : 0;
   lastMark = now; lastPos = { x, y };
-  marks.push({
-    x, y, t: now, kind, ang, col: visitor,
-    v: Math.floor(Math.random() * VARIANTS),
-    rot: (Math.random() - .5) * 0.9,
-    s: kind === 'press' ? 0.62 + Math.random() * 0.16 : 0.5 + Math.random() * 0.1,
-  });
-  if (marks.length > 500) marks.shift();
+  pushMark(makeMark(x, y, kind, visitor, now, 1, strokeBase % Math.max(1, BASES.length), ang));
 }
-vp.addEventListener('pointerdown', (e) => { lastPos = null; addMark(e.clientX, e.clientY, 'press'); });
-vp.addEventListener('pointermove', (e) => { if (e.buttons || e.pointerType === 'touch') addMark(e.clientX, e.clientY, 'trail'); });
+window.addEventListener('pointerdown', (e) => addMark(e.clientX, e.clientY, 'press'));
+window.addEventListener('pointermove', (e) => { if (e.buttons && e.pointerType !== 'touch') addMark(e.clientX, e.clientY, 'trail'); });
+// touch: the browser takes over scrolling (pointer events stop), but touchmove keeps reporting the finger
+window.addEventListener('touchmove', (e) => { for (const t of e.changedTouches) addMark(t.clientX, t.clientY, 'trail'); }, { passive: true });
+
+// earlier visitors: fainter prints and swipe marks in colours other than the current visitor's
+function ghostSwipe(col, b, t0) {
+  let x = innerWidth * (0.12 + Math.random() * 0.76);
+  let y = innerHeight * (0.18 + Math.random() * 0.64);
+  let a = (Math.random() < 0.5 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.5;   // mostly sideways, like scrolling
+  const len = innerWidth * (0.14 + Math.random() * 0.24);
+  const bend = (Math.random() - 0.5) * 0.7, step = 10;
+  pushMark(makeMark(x, y, 'press', col, t0, 0.3, b));
+  for (let d = 0, i = 0; d < len; d += step, i++) {
+    a += bend * step / len;
+    x += Math.cos(a) * step; y += Math.sin(a) * step;
+    pushMark(makeMark(x, y, 'trail', col, t0 + i * 14, 0.45, b, a));   // drawn in over ~1 s, like a finger moving
+  }
+}
+function ghostVisit() {
+  if (!BASES.length || document.hidden) return;
+  const now = performance.now();
+  const used = [visitor];
+  const people = Math.random() < 0.5 ? 1 : 2;
+  for (let k = 0; k < people; k++) {
+    const col = pickColour(used); used.push(col);
+    const b = randomBase(), t0 = now + k * 700;
+    const presses = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < presses; i++) {
+      pushMark(makeMark(innerWidth * (0.08 + Math.random() * 0.84), innerHeight * (0.12 + Math.random() * 0.76),
+        'press', col, t0 + i * 350, 0.42, b));
+    }
+    if (Math.random() < 0.8) ghostSwipe(col, b, t0 + 250);
+  }
+}
+setInterval(ghostVisit, GHOST_MS);
 
 /* --- draw --- */
-function drawPrint(m, a) {
-  const tex = PRINT_TINTS[m.col][m.v][m.kind === 'press' ? 'press' : 'smear'];
+function drawMark(m, a) {
+  const base = BASES[m.b];
+  if (!base) return;
+  const press = m.kind === 'press';
+  const tex = texture(m.b, m.col, press ? 'press' : 'smear', m.p);
+  const h = innerHeight * PRINT_H * m.s, w = h * base.width / base.height;
   g.save();
   g.translate(m.x, m.y);
-  if (m.kind === 'press') {
+  g.globalAlpha = a;
+  if (press) {
     g.rotate(m.rot);
-    g.globalAlpha = a;
-    g.drawImage(tex, -TW * m.s / 2, -TH * m.s / 2, TW * m.s, TH * m.s);
+    g.drawImage(tex, -w / 2, -h / 2, w, h);
   } else {
-    // a dragged finger: the print is stretched along the swipe and smeared soft
-    g.rotate(m.ang + Math.PI / 2);
-    g.globalAlpha = a;
-    g.drawImage(tex, -TW * m.s / 2, -TH * m.s * 0.8, TW * m.s, TH * m.s * 1.6);
+    // a dragged finger: streaks laid along the swipe; overlapping stamps join into one smear
+    g.rotate(m.ang - Math.PI / 2);
+    g.drawImage(tex, -w * 0.375, -h / 2, w * 0.75, h);
   }
   g.restore();
 }
 function loop(now) {
   g.clearRect(0, 0, innerWidth, innerHeight);
   for (let i = 0; i < marks.length; i++) {
-    const age = (now - marks[i].t) / LIFE;
+    const m = marks[i], age = (now - m.t) / LIFE;
     if (age >= 1) { marks.splice(i--, 1); continue; }
-    drawPrint(marks[i], Math.pow(1 - age, 1.6) * (marks[i].kind === 'press' ? 0.9 : 0.15));
+    if (age < 0) continue;                       // not drawn in yet
+    drawMark(m, Math.pow(1 - age, 1.6) * (m.kind === 'press' ? 0.9 : 0.07) * m.strength);
   }
   requestAnimationFrame(loop);
 }

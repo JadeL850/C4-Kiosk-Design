@@ -34,14 +34,16 @@
       <h2 class="hl" style="left:2568px;top:100px;font-size:82px;line-height:75px">MEASURABLE DATA</h2>
       <p class="lede" style="left:2572px;top:210px">What does surveillance tech even observe?</p>
 
-      <figure class="img" style="left:2691px;top:317px;width:594px;height:334px;background-image:url(img/eye.jpg)"></figure>
-      <h3 class="hl" style="left:2691px;top:701px;font-size:50px;line-height:46px">GAZE &amp; IRIS<br>TRACKING</h3>
+      <!-- data-info="…" makes an element tappable: it opens the matching
+           <section id="info-…"> in the info panel further down. -->
+      <figure class="img tap" data-info="gaze" role="button" tabindex="0" aria-label="Gaze and iris tracking — read more" style="left:2691px;top:317px;width:594px;height:334px;background-image:url(img/eye.jpg)"></figure>
+      <h3 class="hl tap" data-info="gaze" style="left:2691px;top:701px;font-size:50px;line-height:46px">GAZE &amp; IRIS<br>TRACKING</h3>
 
-      <figure class="img" style="left:3406px;top:488px;width:509px;height:339px;background-image:url(img/walking.jpg)"></figure>
-      <h3 class="hl" style="left:3360px;top:786px;font-size:50px;line-height:46px">GAIT<br>RECOGNITION</h3>
+      <figure class="img tap" data-info="gait" role="button" tabindex="0" aria-label="Gait recognition — read more" style="left:3406px;top:488px;width:509px;height:339px;background-image:url(img/walking.jpg)"></figure>
+      <h3 class="hl tap" data-info="gait" style="left:3360px;top:786px;font-size:50px;line-height:46px">GAIT<br>RECOGNITION</h3>
 
-      <figure class="img" style="left:3990px;top:633px;width:525px;height:340px;background-image:url(img/thumb.jpg)"></figure>
-      <h3 class="hl" style="left:4287px;top:537px;font-size:50px;line-height:46px">MINUTIAE<br>TEMPLATE</h3>
+      <figure class="img tap" data-info="minutiae" role="button" tabindex="0" aria-label="Minutiae template — read more" style="left:3990px;top:633px;width:525px;height:340px;background-image:url(img/thumb.jpg)"></figure>
+      <h3 class="hl tap" data-info="minutiae" style="left:4287px;top:537px;font-size:50px;line-height:46px">MINUTIAE<br>TEMPLATE</h3>
 
       <p class="cue" style="left:2598px;top:989px">Tap to read</p>
 
@@ -49,13 +51,13 @@
       <!-- Each card is a finished design exported from Figma (text included),
            so it is shown as a single image. The label keeps the text readable
            for screen readers. -->
-      <article class="card" style="left:4795px" role="img" aria-label="Measured. Your face, fingerprint, gaze and gait are captured and turned into data.">
+      <article class="card tap" data-info="measured" style="left:4795px" role="button" tabindex="0" aria-label="Measured. Your face, fingerprint, gaze and gait are captured and turned into data. Tap to expand.">
         <figure class="img card-art" style="background-image:url(img/measured.png)"></figure>
       </article>
-      <article class="card" style="left:5297px" role="img" aria-label="Categorized. That data is sorted into labels like age, gender, race and emotion, reducing a whole person to a few traits.">
+      <article class="card tap" data-info="categorized" style="left:5297px" role="button" tabindex="0" aria-label="Categorized. That data is sorted into labels like age, gender, race and emotion, reducing a whole person to a few traits. Tap to expand.">
         <figure class="img card-art" style="background-image:url(img/categorized.png)"></figure>
       </article>
-      <article class="card" style="left:5799px" role="img" aria-label="Judged. Those labels are used to predict who you are and what you might do, and the mistakes fall hardest on those already over-watched.">
+      <article class="card tap" data-info="judged" style="left:5799px" role="button" tabindex="0" aria-label="Judged. Those labels are used to predict who you are and what you might do, and the mistakes fall hardest on those already over-watched. Tap to expand.">
         <figure class="img card-art" style="background-image:url(img/judged.png)"></figure>
       </article>
 
@@ -63,6 +65,88 @@
     </div>
   </div>
 </main>
+
+<!-- ============ INFO PANEL ============
+     Opens when a tappable element is tapped. Each <section> holds the text
+     for one data-info name; edit the text here. -->
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sheet-backdrop" data-close></div>
+  <aside class="sheet-panel" role="dialog" aria-modal="true" aria-label="How it works">
+    <button class="sheet-close" type="button" data-close>Close <span aria-hidden="true">✕</span></button>
+
+    <section class="info" id="info-gaze" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Gaze &amp; Iris Tracking</h2>
+      <p class="info-lede">Cameras that follow where you look, and read the pattern inside your eye.</p>
+      <ul class="info-facts">
+        <li><b>Gaze.</b> Invisible near-infrared light is shone at the eye. A camera tracks the dark pupil against a bright reflection on the cornea (the “glint”); the gap between them gives where you are looking, to within about 1°.</li>
+        <li><b>Iris.</b> The iris’s texture forms before birth and differs even between identical twins. Software unwraps the iris ring into a flat strip and encodes it as a 2,048-bit “IrisCode”.</li>
+        <li><b>Match.</b> Two codes are compared bit by bit. If fewer than about 32% of the bits differ, the system calls it the same person.</li>
+      </ul>
+      <p class="info-source">Source: J. Daugman, “How Iris Recognition Works”, IEEE, 2004.</p>
+    </section>
+
+    <section class="info" id="info-gait" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Gait Recognition</h2>
+      <p class="info-lede">Identifying a person by the way they walk: from a distance, without seeing their face, and without asking.</p>
+      <ul class="info-facts">
+        <li><b>Capture.</b> Ordinary CCTV video. The body’s outline is cut out of each frame, or a pose model places points on the joints.</li>
+        <li><b>Signature.</b> One full stride is averaged into a single “gait energy image”. Stride length, rhythm, arm swing and joint angles become numbers a neural network compares.</li>
+        <li><b>Limits.</b> Accuracy drops with different shoes, clothing, a carried bag or a new camera angle. But it works on blurry, low-resolution footage where a face cannot be read.</li>
+      </ul>
+      <p class="info-source">Source: J. Han &amp; B. Bhanu, “Individual Recognition Using Gait Energy Image”, IEEE, 2006.</p>
+    </section>
+
+    <section class="info" id="info-minutiae" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Minutiae Template</h2>
+      <p class="info-lede">Your fingerprint is not stored as a picture. It is stored as a map of points.</p>
+      <ul class="info-facts">
+        <li><b>Ridges.</b> Friction ridges, about half a millimetre apart, form before birth and stay the same for life.</li>
+        <li><b>Minutiae.</b> The points where a ridge ends or splits in two. A good print has roughly 40–100 of them, each saved as just a position, an angle and a type.</li>
+        <li><b>Template.</b> That list of points, only a few hundred bytes, is the “template”. Matching rotates two point maps to line them up and scores how many points agree.</li>
+      </ul>
+      <p class="info-source">Sources: Maltoni et al., <i>Handbook of Fingerprint Recognition</i>; ISO/IEC 19794-2.</p>
+    </section>
+
+    <section class="info" id="info-measured" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Measured</h2>
+      <p class="info-lede">Biometrics turn a body into numbers that can be stored, searched and compared.</p>
+      <ul class="info-facts">
+        <li><b>Face.</b> A neural network converts a face into an “embedding”: a list of a few hundred numbers. Two faces count as the same person if their numbers are close enough.</li>
+        <li><b>Search.</b> One face can be checked against millions of stored faces in seconds. Some systems search billions of photos scraped from the web.</li>
+        <li><b>Threshold.</b> Every “match” is a score that passed a cut-off someone chose: a trade-off between missing a person and accusing the wrong one.</li>
+      </ul>
+      <p class="info-source">Source: NIST Face Recognition Technology Evaluation.</p>
+    </section>
+
+    <section class="info" id="info-categorized" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Categorized</h2>
+      <p class="info-lede">Classifiers sort a measured person into labels such as age, gender, race and emotion.</p>
+      <ul class="info-facts">
+        <li><b>Training.</b> Models learn from photos that people have labelled, then output a probability for each label. The labels are only as fair as the people and categories behind them.</li>
+        <li><b>Bias.</b> In 2018, commercial gender classifiers got darker-skinned women wrong up to 34.7% of the time, and lighter-skinned men 0.8% of the time.</li>
+        <li><b>Emotion.</b> “Emotion recognition” reads facial muscle movements. A 2019 review of more than 1,000 studies found that facial movements do not reliably reveal what a person feels.</li>
+      </ul>
+      <p class="info-source">Sources: Buolamwini &amp; Gebru, “Gender Shades”, 2018; Barrett et al., <i>Psychological Science in the Public Interest</i>, 2019.</p>
+    </section>
+
+    <section class="info" id="info-judged" hidden>
+      <p class="info-kicker">How it works</p>
+      <h2 class="info-title">Judged</h2>
+      <p class="info-lede">Labels become predictions about who someone is and what they might do.</p>
+      <ul class="info-facts">
+        <li><b>Prediction.</b> Predictive policing tools learn from past arrest records, so they send officers back to neighbourhoods that are already heavily policed. More patrols produce more records: a feedback loop.</li>
+        <li><b>Risk scores.</b> A 2016 study of the COMPAS risk tool found that Black defendants who did not reoffend were labelled high risk almost twice as often as white defendants (45% vs 23%).</li>
+        <li><b>False matches.</b> US government tests found many face recognition systems made 10 to 100 times more false matches on some groups, including African and East Asian faces.</li>
+      </ul>
+      <p class="info-source">Sources: Lum &amp; Isaac, <i>Significance</i>, 2016; ProPublica, “Machine Bias”, 2016; NIST IR 8280, 2019.</p>
+    </section>
+  </aside>
+</div>
 
 <!-- latent prints: every touch leaves a smudge on the glass that fades -->
 <canvas id="glass" aria-hidden="true"></canvas>
