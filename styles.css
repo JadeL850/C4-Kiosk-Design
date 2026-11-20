@@ -1,0 +1,107 @@
+/* fonts are bundled locally so the kiosk works offline */
+@font-face { font-family: "Barlow Condensed"; src: url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2"); font-weight: 600; font-display: block; }
+@font-face { font-family: "Barlow Condensed"; src: url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-300-normal.woff2) format("woff2"); font-weight: 300; font-display: block; }
+@font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-400-normal.woff2) format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-500-normal.woff2) format("woff2"); font-weight: 500; font-display: block; }
+
+:root {
+  --ground: #0a0b0c;
+  --paper: #f2efe8;
+  --mist: #e3e6e9;
+  --grey: #8e9297;
+  --ink: #08080a;
+  --silver: linear-gradient(90deg, #eceef0 0%, #c3c7cc 38%, #e0e3e6 62%, #a8adb4 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--ground); overflow: hidden; }
+body { font-family: "Hanken Grotesk", system-ui, sans-serif; color: var(--paper); -webkit-font-smoothing: antialiased; }
+
+/* horizontal scroller */
+.viewport {
+  position: fixed; inset: 0;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  overscroll-behavior: contain;
+}
+.viewport::-webkit-scrollbar { display: none; }
+.viewport.dragging { cursor: grabbing; }
+.track { position: relative; height: 100%; }
+
+/* the design is laid out at Figma size and scaled to the screen height in script.js */
+.stage {
+  position: absolute; left: 0; top: 0;
+  width: 6769px; height: 1080px;
+  transform-origin: 0 0;
+  background: var(--ground);
+}
+.stage > *, .card > * { position: absolute; }
+
+/* type */
+.hl {
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  color: var(--paper);
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.body { font-size: 18px; line-height: 1.45; letter-spacing: -0.005em; color: var(--mist); }
+.lede { font-size: 28px; font-weight: 300; letter-spacing: -0.005em; color: var(--grey); white-space: nowrap; }
+.cue {
+  font-size: 14px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--grey); white-space: nowrap;
+}
+
+/* intro */
+.intro { left: 0; top: 0; width: 502px; height: 1080px; background: var(--silver); }
+.intro > * { position: absolute; }
+.intro-copy { left: 53px; top: 200px; width: 397px; font-size: 20px; color: #0b0c0d; }
+.intro-copy p + p { margin-top: 1.4em; }
+.smudges i {
+  position: absolute; width: 84px; height: 108px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(20,22,26,.9), rgba(20,22,26,.35) 60%, transparent);
+  -webkit-mask: repeating-radial-gradient(circle at 50% 60%, #000 0 2px, transparent 2px 5px);
+          mask: repeating-radial-gradient(circle at 50% 60%, #000 0 2px, transparent 2px 5px);
+}
+.smudges i:nth-child(1) { left: 40px;  top: 880px; opacity: .16; filter: blur(1.5px); }
+.smudges i:nth-child(2) { left: 160px; top: 860px; opacity: .11; filter: blur(2.7px); }
+.smudges i:nth-child(3) { left: 270px; top: 848px; opacity: .07; filter: blur(3.9px); }
+.smudges i:nth-child(4) { left: 360px; top: 840px; opacity: .04; filter: blur(5.1px); }
+
+/* images */
+.img {
+  background-color: #1a1c1f;
+  background-size: cover; background-position: center;
+  filter: grayscale(1);
+}
+.scrim-hero { background: linear-gradient(90deg, rgba(8,8,10,.82) 0%, rgba(8,8,10,.55) 60%, rgba(8,8,10,.35) 100%); }
+
+/* measured / categorized / judged cards */
+.card { top: 0; width: 502px; height: 1080px; overflow: hidden; }
+.card .img { inset: 0; }
+.scrim-card { inset: 0; background: linear-gradient(180deg, rgba(8,8,10,.15) 0%, rgba(8,8,10,.35) 40%, rgba(8,8,10,.88) 62%, rgba(8,8,10,.95) 100%); }
+.card-copy { left: 53px; top: 572px; width: 338px; }
+.card-hl { left: 53px; top: 785px; font-size: 60px; line-height: 55px; }
+.card-cue { left: 53px; top: 1002px; color: var(--mist); }
+
+/* fading fingerprint layer */
+#glass { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* demo: whose prints are being recorded right now */
+.visitor {
+  position: fixed; right: 24px; bottom: 18px; z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  font: 500 12px/1 "Hanken Grotesk", sans-serif; letter-spacing: .08em;
+  color: var(--mist); pointer-events: none;
+}
+.visitor i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, #4cc9ff); box-shadow: 0 0 10px var(--c, #4cc9ff); transition: background .6s, box-shadow .6s; }
+.visitor b { font-weight: 500; color: var(--c, #4cc9ff); transition: color .6s; }
+
+/* progress line */
+.progress { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.06); pointer-events: none; }
+.progress span { display: block; height: 100%; width: 0; background: var(--mist); }
+
+@media (prefers-reduced-motion: reduce) { #glass { display: none; } }

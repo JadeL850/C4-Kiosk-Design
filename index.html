@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subject to View</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="viewport" id="viewport" aria-label="Subject to View — scroll sideways">
+  <div class="track" id="track">
+    <!-- The stage is drawn at the Figma size (6769 × 1080) and scaled to fit the screen height -->
+    <div class="stage" id="stage">
+
+      <!-- 1 · Intro (silver panel) -->
+      <section class="intro">
+        <h1 class="hl" style="left:53px;top:42px;font-size:50px;line-height:46px;color:#0b0b0c">SUBJECT TO VIEW</h1>
+        <div class="body intro-copy">
+          <p>Flock Safety CEO Garrett Langley uses this promise to sell surveillance as a form of protection. The premise is simple: if something can be identified and seen, it can do no harm. But when did we ask for them to assume we were the harm? Who are they to assume we are the danger? Who are they? Do we get to observe them?</p>
+          <p>This exhibition takes that contradiction to the screen and provides an opportunity to observe what observes us back. Using real-time facial expression recognition, the website turns the viewer’s face into an input, triggering visual consequences based on how the system classifies their expression.</p>
+        </div>
+        <div class="smudges" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="cue" style="left:53px;top:1002px;color:#0b0c0d">Swipe to scroll</p>
+      </section>
+
+      <!-- 2 · Hero -->
+      <figure class="img" style="left:502px;top:0;width:1625px;height:1080px;background-image:url(img/cams.jpg)"></figure>
+      <div class="scrim scrim-hero" style="left:502px;top:0;width:1625px;height:1080px"></div>
+      <h2 class="hl" style="left:950px;top:188px;font-size:101px;line-height:93px">THE VIEWER BECOMES<br>BOTH THE SUBJECT<br>OF SURVEILLANCE</h2>
+      <h2 class="hl" style="left:1565px;top:737px;font-size:101px;line-height:93px">…AND A WITNESS<br>TO ITS DECISIONS.</h2>
+      <p class="cue" style="left:557px;top:1002px;font-size:13px">Two Grey CCTV Cameras Miłosz Klinowski</p>
+
+      <!-- 3 · Measurable data -->
+      <h2 class="hl" style="left:2568px;top:100px;font-size:82px;line-height:75px">MEASURABLE DATA</h2>
+      <p class="lede" style="left:2572px;top:210px">What does surveillance tech even observe?</p>
+
+      <figure class="img" style="left:2691px;top:317px;width:594px;height:334px;background-image:url(img/eye.jpg)"></figure>
+      <h3 class="hl" style="left:2691px;top:701px;font-size:50px;line-height:46px">GAZE &amp; IRIS<br>TRACKING</h3>
+
+      <figure class="img" style="left:3406px;top:488px;width:509px;height:339px;background-image:url(img/walking.jpg)"></figure>
+      <h3 class="hl" style="left:3360px;top:786px;font-size:50px;line-height:46px">GAIT<br>RECOGNITION</h3>
+
+      <figure class="img" style="left:3990px;top:633px;width:525px;height:340px;background-image:url(img/thumb.jpg)"></figure>
+      <h3 class="hl" style="left:4287px;top:537px;font-size:50px;line-height:46px">MINUTIAE<br>TEMPLATE</h3>
+
+      <p class="cue" style="left:2598px;top:989px">Tap to read</p>
+
+      <!-- 4 · Measured / Categorized / Judged -->
+      <article class="card" style="left:4795px">
+        <figure class="img" style="background-image:url(img/measured.jpg)"></figure>
+        <div class="scrim scrim-card"></div>
+        <p class="body card-copy">Your face, fingerprint, gaze and gait are captured and turned into data.</p>
+        <h3 class="hl card-hl">MEASURED</h3>
+        <p class="cue card-cue">Tap to expand &nbsp;→</p>
+      </article>
+      <article class="card" style="left:5297px">
+        <figure class="img" style="background-image:url(img/categorized.jpg);opacity:.85"></figure>
+        <div class="scrim scrim-card"></div>
+        <p class="body card-copy">That data is sorted into labels like age, gender, race and emotion, reducing a whole person to a few traits.</p>
+        <h3 class="hl card-hl">CATEGORIZED</h3>
+        <p class="cue card-cue">Tap to expand &nbsp;→</p>
+      </article>
+      <article class="card" style="left:5799px">
+        <figure class="img" style="background-image:url(img/judged.jpg)"></figure>
+        <div class="scrim scrim-card"></div>
+        <p class="body card-copy">Those labels are used to predict who you are and what you might do, and the mistakes fall hardest on those already over-watched.</p>
+        <h3 class="hl card-hl">JUDGED</h3>
+        <p class="cue card-cue">Tap to expand &nbsp;→</p>
+      </article>
+
+      <p class="cue" style="left:6316px;top:1002px">Tap to continue &nbsp;→</p>
+    </div>
+  </div>
+</main>
+
+<!-- latent prints: every touch leaves a smudge on the glass that fades -->
+<canvas id="glass" aria-hidden="true"></canvas>
+<div class="visitor" id="visitor" aria-live="polite"><i></i>VISITOR <b>0417</b></div>
+<div class="progress" aria-hidden="true"><span id="bar"></span></div>
+
+<script src="script.js"></script>
+</body>
+</html>
