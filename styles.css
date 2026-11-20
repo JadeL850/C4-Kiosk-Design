@@ -82,6 +82,7 @@ body { font-family: "Hanken Grotesk", system-ui, sans-serif; color: var(--paper)
 /* measured / categorized / judged cards */
 .card { top: 0; width: 502px; height: 1080px; overflow: hidden; }
 .card .img { inset: 0; }
+.card .card-art { margin: 0; filter: none; }  /* finished artwork: keep it exactly as exported */
 .scrim-card { inset: 0; background: linear-gradient(180deg, rgba(8,8,10,.15) 0%, rgba(8,8,10,.35) 40%, rgba(8,8,10,.88) 62%, rgba(8,8,10,.95) 100%); }
 .card-copy { left: 53px; top: 572px; width: 338px; }
 .card-hl { left: 53px; top: 785px; font-size: 60px; line-height: 55px; }
